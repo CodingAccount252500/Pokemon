@@ -36,7 +36,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: "+ex.Message);
+                return View("Error: " + ex.Message);
             }
         }
         #endregion
@@ -108,6 +108,87 @@ namespace Pokemon.Controllers
                 List<Product> filteredProducts = await items.Skip(skipAmount).Take(pageSize).ToListAsync();
 
                 return View(filteredProducts);
+            }
+            catch (Exception ex)
+            {
+                return View("Error: " + ex.Message);
+            }
+        }
+        #endregion
+
+        #region Add Product To Cart
+        public IActionResult AddProductToCart(int productId, int qtn, int userId)
+        {
+            try
+            {
+                if (productId > 0 && qtn > 0 && userId > 0)
+                {
+                    var cart = _context.Carts.FirstOrDefault(x => x.UserId == userId && x.IsActive == true);
+                    var product = _context.Products.FirstOrDefault(x => x.ProductId == productId);
+
+                    if (cart != null && product != null)
+                    {
+                        var existingCartItem = _context.CartItems.FirstOrDefault(y => y.ProductId == productId && y.CartId == cart.CartId);
+
+                        if (existingCartItem == null)
+                        {
+                            CartItem cartItem = new CartItem
+                            {
+                                ProductId = productId,
+                                CartId = cart.CartId,
+                                Quantity = qtn,
+                                TotalPrice = (double)(product.Price * qtn)
+                            };
+                            _context.Add(cartItem);
+                        }
+                        else
+                        {
+                            existingCartItem.Quantity += qtn;
+                            existingCartItem.TotalPrice = (double)(product.Price * existingCartItem.Quantity);
+                            _context.Update(existingCartItem);
+                        }
+
+                        _context.SaveChanges();
+                    }
+                    else if (product != null)
+                    {
+                        Cart newCart = new Cart
+                        {
+                            UserId = userId,
+                            IsActive = true
+                        };
+                        _context.Add(newCart);
+                        _context.SaveChanges();
+
+                        var cartNew = _context.Carts.FirstOrDefault(x => x.UserId == userId);
+                        if (cartNew != null)
+                        {
+                            var existingCartItem = _context.CartItems.FirstOrDefault(y => y.ProductId == productId && y.CartId == cartNew.CartId);
+
+                            if (existingCartItem == null)
+                            {
+                                CartItem cartItem = new CartItem
+                                {
+                                    ProductId = productId,
+                                    CartId = cartNew.CartId,
+                                    Quantity = qtn,
+                                    TotalPrice = (double)(product.Price * qtn)
+                                };
+                                _context.Add(cartItem);
+                            }
+                            else
+                            {
+                                existingCartItem.Quantity += qtn;
+                                existingCartItem.TotalPrice = (double)(product.Price * existingCartItem.Quantity);
+                                _context.Update(existingCartItem);
+                            }
+
+                            _context.SaveChanges();
+                        }
+                    }
+                }
+
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
