@@ -83,5 +83,37 @@ namespace Pokemon.Controllers
             }
         }
         #endregion
+
+        #region Filter Products
+        public async Task<IActionResult> FilterProducts(int pageSize, int pageNumber, decimal? price, string name, string description)
+        {
+            try
+            {
+                IQueryable<Product> items = _context.Products;
+
+                if (price != null)
+                {
+                    items = items.Where(x => x.Price >= price);
+                }
+                if (!string.IsNullOrEmpty(name))
+                {
+                    items = items.Where(x => x.ProductName.Contains(name));
+                }
+                if (!string.IsNullOrEmpty(description))
+                {
+                    items = items.Where(x => x.Description.Contains(description));
+                }
+
+                int skipAmount = pageSize * (pageNumber - 1);
+                List<Product> filteredProducts = await items.Skip(skipAmount).Take(pageSize).ToListAsync();
+
+                return View(filteredProducts);
+            }
+            catch (Exception ex)
+            {
+                return View("Error: " + ex.Message);
+            }
+        }
+        #endregion
     }
 }
