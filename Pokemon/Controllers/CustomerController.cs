@@ -61,7 +61,27 @@ namespace Pokemon.Controllers
         }
         #endregion
 
-       
+        #region Get All Category Products
+        public async Task<IActionResult> GetAllCategoryProducts()
+        {
+            try
+            {
+                var categoryProducts = await _context.CategoryProducts.ToListAsync();
 
+                if (categoryProducts != null && categoryProducts.Count > 0)
+                {
+                    return View(categoryProducts);
+                }
+                else
+                {
+                    return View("NoCategoriesFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                return View("Error: " + ex.Message);
+            }
+        }
+        #endregion
     }
 }
