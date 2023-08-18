@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Pokemon.DTO.Customer;
 using Pokemon.Models;
 
 namespace Pokemon.Controllers
@@ -193,6 +194,52 @@ namespace Pokemon.Controllers
             catch (Exception ex)
             {
                 return View("Error: " + ex.Message);
+            }
+        }
+        #endregion
+
+        #region Get Order Details
+        public IActionResult GetOrderDetails(int orderId)
+        {
+            try
+            {
+                var order = _context.Orders.FirstOrDefault(x => x.OrderId == orderId);
+
+                if (order != null)
+                {
+                    var orderDetails = new OrdedDetailsForUserDTOres
+                    {
+                        OrderDate = order.Orderdate.ToString(),
+                        DeliveryDate = order.Deliverydate.ToString(),
+                        TotalPrice = order.Totalprice.ToString(),
+                        Note = order.Note,
+                        OrderStatus = _context.OrderStates.FirstOrDefault(x => x.OrderStateId == order.OrderStateId)?.Name,
+                    };
+
+                    var cart = _context.Carts.FirstOrDefault(x => x.CartId == order.CartId);
+                    var cartItems = _context.CartItems
+                        .Where(x => x.CartId == order.CartId)
+                        .Join(_context.Products, cit => cit.ProductId, it => it.ProductId, (cit, it) => new OrderCatrItemDTOreq
+                        {
+                            Id = it.ProductId.ToString(),
+                            Name = it.ProductName,
+                            Price = it.Price.ToString(),
+                            Quantity = cit.Quantity.ToString(),
+                            NetPrice = cit.TotalPrice.ToString()
+                        })
+                        .ToList();
+
+                    orderDetails.MyCart = cartItems;
+                    return View(orderDetails);
+                }
+                else
+                {
+                    return View("OrderNotFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                return View("Error: "+ex.Message);
             }
         }
         #endregion
