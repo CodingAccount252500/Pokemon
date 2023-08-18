@@ -32,16 +32,36 @@ namespace Pokemon.Controllers
                 {
                     return View(products);
                 }
-                else
-                {
-                    return View("NoProductsFound");
-                }
+                return View("NoProductsFound");
             }
             catch (Exception ex)
             {
-                return View("Error");
+                return View("Error: "+ex.Message);
             }
         }
         #endregion
+
+        #region Get Product By Id
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            try
+            {
+                var product = await _context.Products.FirstOrDefaultAsync(x => x.ProductId == id);
+
+                if (product != null)
+                {
+                    return View(product);
+                }
+                return View("ProductNotFound");
+            }
+            catch (Exception ex)
+            {
+                return View("Error: " + ex.Message);
+            }
+        }
+        #endregion
+
+       
+
     }
 }
