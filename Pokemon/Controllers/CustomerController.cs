@@ -37,7 +37,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: " + ex.Message);
+                return View("Error");
             }
         }
         #endregion
@@ -57,7 +57,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: " + ex.Message);
+                return View("Error");
             }
         }
         #endregion
@@ -80,7 +80,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: " + ex.Message);
+                return View("Error");
             }
         }
         #endregion
@@ -112,7 +112,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: " + ex.Message);
+                return View("Error");
             }
         }
         #endregion
@@ -193,7 +193,7 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: " + ex.Message);
+                return View("Error");
             }
         }
         #endregion
@@ -239,9 +239,34 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error: "+ex.Message);
+                return View("Error");
             }
         }
         #endregion
+
+        #region Check Order Status
+        public IActionResult CheckOrderStatus(int id)
+        {
+            try
+            {
+                var order = _context.Orders.FirstOrDefault(x => x.OrderId == id);
+
+                if (order != null)
+                {
+                    var orderStateName = _context.OrderStates.FirstOrDefault(x => x.OrderStateId == order.OrderStateId)?.Name;
+                    return View(orderStateName);
+                }
+                else
+                {
+                    return View("OrderNotFound");
+                }
+            }
+            catch (Exception ex)
+            {
+                return View("Error"); 
+            }
+        }
+        #endregion
+
     }
 }
