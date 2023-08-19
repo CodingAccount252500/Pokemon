@@ -353,5 +353,32 @@ namespace Pokemon.Controllers
         }
         #endregion
 
+        #region Remove CartItem
+        public async Task<IActionResult> RemoveCartItem(int cartItemId)
+        {
+            try
+            {
+                var cartItem = await _context.CartItems.FirstOrDefaultAsync(x => x.CartItem1 == cartItemId);
+
+                if (cartItem != null)
+                {
+                    var cart = await _context.Carts.FirstOrDefaultAsync(x => x.CartId == cartItem.CartId);
+
+                    if (cart != null && cart.IsActive == true)
+                    {
+                        _context.Remove(cartItem);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                return RedirectToAction("Cart");
+            }
+            catch (Exception ex)
+            {
+                return View("Error");
+            }
+        }
+        #endregion
+
     }
 }
