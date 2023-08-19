@@ -301,7 +301,50 @@ namespace Pokemon.Controllers
                     return View("InvalidOrder");
                 }
 
-                return RedirectToAction("OrderConfirmation"); 
+                return RedirectToAction("OrderConfirmation");
+            }
+            catch (Exception ex)
+            {
+                return View("Error");
+            }
+        }
+        #endregion
+
+        #region Remove From Cart
+        public async Task<IActionResult> RemoveFromCart(int cartItemId)
+        {
+            try
+            {
+                var cartItem = await _context.CartItems.FirstOrDefaultAsync(x => x.CartItem1 == cartItemId);
+
+                if (cartItem != null)
+                {
+                    var cart = await _context.Carts.FirstOrDefaultAsync(x => x.CartId == cartItem.CartId);
+
+                    if (cart != null && cart.IsActive == true)
+                    {
+                        if (cartItem.Quantity == 1)
+                        {
+                            _context.Remove(cartItem);
+                        }
+                        else
+                        {
+                            cartItem.Quantity -= 1;
+                            var productPrice = await _context.Products
+                                .Where(x => x.ProductId == cartItem.ProductId)
+                                .Select(x => x.Price)
+                                .FirstOrDefaultAsync();
+
+                            cartItem.TotalPrice = (double?)(productPrice * cartItem.Quantity);
+                            _context.Update(cartItem);
+                        }
+
+                        await _context.SaveChangesAsync();
+                        return View();
+                    }
+                }
+
+                return View("Error");
             }
             catch (Exception ex)
             {
