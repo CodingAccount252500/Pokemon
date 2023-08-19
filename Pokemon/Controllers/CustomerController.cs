@@ -118,18 +118,18 @@ namespace Pokemon.Controllers
         #endregion
 
         #region Add Product To Cart
-        public IActionResult AddProductToCart(int productId, int qtn, int userId)
+        public async Task<IActionResult> AddProductToCart(int productId, int qtn, int userId)
         {
             try
             {
                 if (productId > 0 && qtn > 0 && userId > 0)
                 {
-                    var cart = _context.Carts.FirstOrDefault(x => x.UserId == userId && x.IsActive == true);
-                    var product = _context.Products.FirstOrDefault(x => x.ProductId == productId);
+                    var cart = await _context.Carts.FirstOrDefaultAsync(x => x.UserId == userId && x.IsActive == true);
+                    var product = await _context.Products.FirstOrDefaultAsync(x => x.ProductId == productId);
 
                     if (cart != null && product != null)
                     {
-                        var existingCartItem = _context.CartItems.FirstOrDefault(y => y.ProductId == productId && y.CartId == cart.CartId);
+                        var existingCartItem = await _context.CartItems.FirstOrDefaultAsync(y => y.ProductId == productId && y.CartId == cart.CartId);
 
                         if (existingCartItem == null)
                         {
@@ -140,7 +140,7 @@ namespace Pokemon.Controllers
                                 Quantity = qtn,
                                 TotalPrice = (double)(product.Price * qtn)
                             };
-                            _context.Add(cartItem);
+                            await _context.AddAsync(cartItem);
                         }
                         else
                         {
@@ -149,7 +149,7 @@ namespace Pokemon.Controllers
                             _context.Update(existingCartItem);
                         }
 
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                     }
                     else if (product != null)
                     {
@@ -158,13 +158,13 @@ namespace Pokemon.Controllers
                             UserId = userId,
                             IsActive = true
                         };
-                        _context.Add(newCart);
-                        _context.SaveChanges();
+                        await _context.AddAsync(newCart);
+                        await _context.SaveChangesAsync();
 
-                        var cartNew = _context.Carts.FirstOrDefault(x => x.UserId == userId);
+                        var cartNew = await _context.Carts.FirstOrDefaultAsync(x => x.UserId == userId);
                         if (cartNew != null)
                         {
-                            var existingCartItem = _context.CartItems.FirstOrDefault(y => y.ProductId == productId && y.CartId == cartNew.CartId);
+                            var existingCartItem = await _context.CartItems.FirstOrDefaultAsync(y => y.ProductId == productId && y.CartId == cartNew.CartId);
 
                             if (existingCartItem == null)
                             {
@@ -175,7 +175,7 @@ namespace Pokemon.Controllers
                                     Quantity = qtn,
                                     TotalPrice = (double)(product.Price * qtn)
                                 };
-                                _context.Add(cartItem);
+                                await _context.AddAsync(cartItem);
                             }
                             else
                             {
@@ -184,7 +184,7 @@ namespace Pokemon.Controllers
                                 _context.Update(existingCartItem);
                             }
 
-                            _context.SaveChanges();
+                            await _context.SaveChangesAsync();
                         }
                     }
                 }
@@ -199,11 +199,11 @@ namespace Pokemon.Controllers
         #endregion
 
         #region Get Order Details
-        public IActionResult GetOrderDetails(int orderId)
+        public async Task<IActionResult> GetOrderDetails(int orderId)
         {
             try
             {
-                var order = _context.Orders.FirstOrDefault(x => x.OrderId == orderId);
+                var order = await _context.Orders.FirstOrDefaultAsync(x => x.OrderId == orderId);
 
                 if (order != null)
                 {
@@ -216,7 +216,7 @@ namespace Pokemon.Controllers
                         OrderStatus = _context.OrderStates.FirstOrDefault(x => x.OrderStateId == order.OrderStateId)?.Name,
                     };
 
-                    var cart = _context.Carts.FirstOrDefault(x => x.CartId == order.CartId);
+                    var cart = await _context.Carts.FirstOrDefaultAsync(x => x.CartId == order.CartId);
                     var cartItems = _context.CartItems
                         .Where(x => x.CartId == order.CartId)
                         .Join(_context.Products, cit => cit.ProductId, it => it.ProductId, (cit, it) => new OrderCatrItemDTOreq
@@ -245,11 +245,11 @@ namespace Pokemon.Controllers
         #endregion
 
         #region Check Order Status
-        public IActionResult CheckOrderStatus(int id)
+        public async Task<IActionResult> CheckOrderStatus(int id)
         {
             try
             {
-                var order = _context.Orders.FirstOrDefault(x => x.OrderId == id);
+                var order = await _context.Orders.FirstOrDefaultAsync(x => x.OrderId == id);
 
                 if (order != null)
                 {
@@ -263,7 +263,49 @@ namespace Pokemon.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error"); 
+                return View("Error");
+            }
+        }
+        #endregion
+
+        #region Create New Order
+        public async Task<IActionResult> CreateNewOrder(OrderDTOreq order)
+        {
+            try
+            {
+                var cart = await _context.Carts.FirstOrDefaultAsync(x => x.CartId == order.CartId && x.IsActive == true);
+
+                if (cart != null && order.DeliveryDate.AddDays(-2).AddMinutes(1) > DateTime.Now)
+                {
+                    cart.IsActive = false;
+                    _context.Update(cart);
+                    await _context.SaveChangesAsync();
+
+                    Order newOrder = new Order
+                    {
+                        CartId = order.CartId,
+                        Deliverydate = order.DeliveryDate,
+                        Orderdate = DateTime.Now,
+                        Note = order.Note,
+                        OrderStateId = 1,
+                        Totalprice = await _context.CartItems
+                            .Where(x => x.CartId == order.CartId)
+                            .SumAsync(x => x.TotalPrice)
+                    };
+
+                    await _context.AddAsync(newOrder);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    return View("InvalidOrder");
+                }
+
+                return RedirectToAction("OrderConfirmation"); 
+            }
+            catch (Exception ex)
+            {
+                return View("Error");
             }
         }
         #endregion
