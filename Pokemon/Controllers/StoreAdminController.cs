@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Pokemon.DTO;
+using Pokemon.DTO.Customer;
 using Pokemon.Models;
 
 namespace Pokemon.Controllers
@@ -174,7 +175,29 @@ namespace Pokemon.Controllers
             catch(Exception ex) { return BadRequest(ex.Message); }
         }
         
+        /// <summary>
+        /// Add New Action (AddCategory)
+        /// Solved by Bahaa
+        /// We used CategoryDTO class as object of parameter
+        /// </summary>
+        /// <param name="categotydto"></param>
+        /// <returns></returns>
         
+        [HttpPost]
+        public IActionResult AddCategory(CategoryDTO categotydto)
+        {
+            if ( HarmAmmanContext.Categories.Any(x => x.Name == categotydto.catname))
+            {
+                return BadRequest("The CategoryName is Already Excist");
+            }
+
+            Category category = new Category();
+            category.Name = categotydto.catname;
+            HarmAmmanContext.Add(category);
+            HarmAmmanContext.SaveChanges();
+            return Ok("Add Category Successfully");
+            
+        }
 
 
 
