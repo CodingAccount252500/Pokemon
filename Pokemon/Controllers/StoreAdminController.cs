@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Pokemon.DTO;
 using Pokemon.DTO.Customer;
 using Pokemon.Models;
+using System.Linq;
+using DTOOrderResponse = Pokemon.DTO.DTOOrderResponse;
 
 namespace Pokemon.Controllers
 {
@@ -269,6 +271,30 @@ namespace Pokemon.Controllers
                 return Ok("Category Deleted Successfully");
             }
             return Ok("Category Not Available");
+        }
+
+        /// <summary>
+        /// GetAllProducts Method
+        /// Solved by Bahaa
+        /// </summary>
+        /// <param name="pageSize"></param>
+        /// <param name="pageNumber"></param>
+        /// <returns></returns>
+
+        public IActionResult GetAllProducts(int pageSize, int pageNumber)
+        {
+            try
+            {
+                var products = HarmAmmanContext.Products.ToList();
+                int pageSkipe = pageSize * pageNumber - pageSize;
+                return Ok(products.Skip(pageSkipe).Take(pageSize));
+
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
 
     }
