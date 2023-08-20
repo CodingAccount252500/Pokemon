@@ -248,6 +248,28 @@ namespace Pokemon.Controllers
             }
             return Ok("Category Not Available");
         }
+        /// <summary>
+        /// DeleteCategory By Marwa
+
+        /// <param name="Id"></param>
+        /// <returns></returns>
+
+        public IActionResult DeleteCategory(int Id)
+        {
+            var category = HarmAmmanContext.Categories.Where(x => x.CategoryId == Id).SingleOrDefault();
+            if (category != null)
+            {
+
+                HarmAmmanContext.Remove(category);
+                HarmAmmanContext.SaveChanges();
+
+
+
+
+                return Ok("Category Deleted Successfully");
+            }
+            return Ok("Category Not Available");
+        }
 
     }
 }
