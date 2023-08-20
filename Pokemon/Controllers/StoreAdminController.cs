@@ -225,5 +225,29 @@ namespace Pokemon.Controllers
             return Ok(categorydto);
         }
 
+        /// <summary>
+        /// UpdateCategory done by marwa
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <param name="update"></param>
+        /// <returns></returns>
+        public IActionResult UpdateCategory(int Id, CategoryDTO update)
+        {
+
+            var checkcategory = HarmAmmanContext.Categories.Where(x => x.CategoryId == Id).SingleOrDefault();
+            if (checkcategory != null)
+            {
+                if (checkcategory.Name != null)
+                {
+                    checkcategory.Name = update.catname;
+
+                    HarmAmmanContext.Update(checkcategory);
+                    HarmAmmanContext.SaveChanges();
+                    return Ok("Category Has Been Updated");
+                }
+            }
+            return Ok("Category Not Available");
+        }
+
     }
 }
