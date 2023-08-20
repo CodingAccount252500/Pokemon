@@ -199,6 +199,15 @@ namespace Pokemon.Controllers
             
         }
 
+        /// <summary>
+        /// GetAllCategory
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult GetAllCategory()
+        {
+            var getcategory = HarmAmmanContext.Categories.ToList();
+            return Ok(getcategory);
+        }
 
 
     }
