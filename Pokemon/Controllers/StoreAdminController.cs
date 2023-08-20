@@ -209,6 +209,21 @@ namespace Pokemon.Controllers
             return Ok(getcategory);
         }
 
+        /// <summary>
+        /// Commit By Marwa
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <returns></returns>
+        /// 
+
+        public IActionResult GetCategoryById(int Id)
+        {
+            var category = HarmAmmanContext.Categories.Where(x => x.CategoryId == Id).SingleOrDefault();
+            CategoryDTO categorydto = new CategoryDTO();
+
+            categorydto.catname = category.Name;
+            return Ok(categorydto);
+        }
 
     }
 }
