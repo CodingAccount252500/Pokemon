@@ -205,11 +205,23 @@ namespace Pokemon.Controllers
         /// GetAllCategory
         /// </summary>
         /// <returns></returns>
-        public IActionResult GetAllCategory()
+        public IActionResult GetAllCategoreies(int PageSize, int PageNumber)
         {
-            var getcategory = HarmAmmanContext.Categories.ToList();
-            return Ok(getcategory);
+            try
+            {
+                var getcategory = HarmAmmanContext.Categories.ToList();
+
+                int skipAmount = PageSize * PageNumber - (PageSize);
+                return Ok(getcategory.Skip(skipAmount).Take(PageSize));
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
+
 
         /// <summary>
         /// Commit By Marwa
