@@ -297,5 +297,61 @@ namespace Pokemon.Controllers
             
         }
 
+        /// <summary>
+        /// GetAllOrders
+        /// Solved by Bahaa
+        /// </summary>
+        /// <param name="PageSize"></param>
+        /// <param name="PageNumber"></param>
+        /// <returns></returns>
+        public IActionResult GetAllOrders(int PageSize, int PageNumber)
+        {
+
+            try
+            {
+                DTOOrderResponse response = new DTOOrderResponse();
+                var orders = HarmAmmanContext.Orders.Where(x => x.Orderdate.ToString() == response.Orderdate).FirstOrDefault();
+                response.Orderdate = orders.Orderdate.ToString();
+                response.Deliverydate = orders.Deliverydate.ToString();
+                response.Totalprice = orders.Totalprice.ToString();
+                response.Note = orders.Note;
+                response.Paymentmethod = HarmAmmanContext.PaymentMethods.Where(x => x.PaymentmethodId == orders.PaymentmethodId).FirstOrDefault().Name;
+                response.Orderdate = HarmAmmanContext.OrderStates.Where(x => x.OrderStateId == orders.OrderStateId).FirstOrDefault().Name;
+
+
+                var carts = HarmAmmanContext.Carts.Where(x => x.CartId == orders.CartId).ToList();
+                var cartitems = HarmAmmanContext.CartItems.Where(x => x.CartId == orders.CartId).ToList();
+                var products = HarmAmmanContext.Products.ToList();
+                var catproducts = HarmAmmanContext.CategoryProducts.ToList();
+
+                var jorders = from c in carts
+                              join cpr in cartitems
+                              on c.CartId equals cpr.CartId
+                              join pr in products
+                              on cpr.ProductId equals pr.ProductId
+                              join catp in catproducts
+                              on pr.CategoryProductId equals catp.CategoryProductId
+                              select new DTOProductDetails
+                              {
+                                  Name = pr.ProductName,
+                                  Price = pr.Price.ToString(),
+                                  Quantity = cpr.Quantity.ToString(),
+                                  Description = pr.Description,
+                                  category = HarmAmmanContext.Categories.Where(x => x.CategoryId == catp.CategoryProductId).FirstOrDefault().Name
+
+                              };
+
+                response.MyCart = jorders.ToList();
+                int PageSkip = PageNumber * PageSize - PageSize;
+                return Ok(products.Skip(PageSkip).Take(PageSize));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+
+        }
+
     }
 }
